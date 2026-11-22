@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cave · 统一 SQL 数据访问层</title>
   <meta name="description" content="Cave 是统一的 SQL 数据访问层：用一套 SQL/CQL 语法查询 Elasticsearch、MongoDB 和 MySQL。">
-  <link rel="stylesheet" href="../styles.css?v=3">
+  <link rel="stylesheet" href="../styles.css?v=4">
   <style>:root { --accent: #4338ca; --accent-soft: #eef0ff; }</style>
 </head>
 <body>
@@ -16,12 +16,13 @@
     <div class="actions">
       <a class="btn primary" href="https://github.com/L-Angel/cave">GitHub 仓库</a>
       <a class="btn ghost" href="https://search.maven.org/artifact/fun.l-angel/cave-sql">Maven Central</a>
+      <a class="btn ghost" href="https://github.com/L-Angel/cave#readme">完整文档</a>
     </div>
     <div class="badges" style="margin-top:22px">
       <span class="badge"><b>Java</b> 8+</span>
       <span class="badge"><b>License</b> Apache-2.0</span>
       <span class="badge"><b>Build</b> Maven 3.6.3+</span>
-      <span class="badge"><b>Version</b> 0.1.0</span>
+      <span class="badge"><b>Version</b> 0.1.1-SNAPSHOT</span>
     </div>
   </header>
 
@@ -29,18 +30,20 @@
 
     <section class="block">
       <h2>特性</h2>
-      <p class="lead">用接口签名的方式声明查询，返回类型决定结果映射。</p>
+      <p class="lead">用接口签名声明查询，返回类型决定结果映射；支持标准 SQL 子集和可扩展的数据源方言。</p>
       <div class="feature-grid">
         <div class="feature"><h3>多异构数据源</h3><p>Elasticsearch、MongoDB、MySQL 三种存储，一套语法通吃。</p></div>
-        <div class="feature"><h3>统一 SQL 查询</h3><p>同一套 CQL 在不同存储介质之间迁移，切换后端不用重写业务。</p></div>
-        <div class="feature"><h3>显式失败</h3><p>未实现的语法抛 UnsupportedOperationException / SqlException，绝不静默忽略。</p></div>
-        <div class="feature"><h3>参数绑定</h3><p>#{} / ${} 参数在进入存储之前完成参数化与转义，防注入。</p></div>
+        <div class="feature"><h3>分组与聚合</h3><p>count / avg / sum / min / max、count(distinct)、GROUP BY / HAVING、多聚合。</p></div>
+        <div class="feature"><h3>能力契约</h3><p>CapabilityValidator 统一下发能力矩阵，未实现语法显式失败，不静默返回错误结果。</p></div>
+        <div class="feature"><h3>参数绑定</h3><p>#{} 绑定标量，${list} 展开集合；JDBC 使用 PreparedStatement，不做字符串拼接。</p></div>
+        <div class="feature"><h3>MySQL 连接池</h3><p>HikariCP 池化连接，支持 JDBC URL、SSL / 时区参数和连接池配置。</p></div>
+        <div class="feature"><h3>Spring Boot Starter</h3><p>application.yml 配置数据源，自动扫描 @Cave 接口，无需手写 @CaveScan。</p></div>
       </div>
     </section>
 
     <section class="block">
       <h2>架构</h2>
-      <p class="lead">CQL 经 ANTLR 解析为 AST，再由三个方言解析器分别转换为各存储的查询。</p>
+      <p class="lead">CQL 经 ANTLR 解析为 AST，能力校验后由各方言转换为对应存储的查询，再统一映射结果。</p>
       <div class="arch">
         <div class="row"><span class="node hl">CQL / SQL 子集</span></div>
         <div class="row"><span class="arrow">↓</span></div>
@@ -48,9 +51,11 @@
         <div class="row"><span class="arrow">↓</span></div>
         <div class="row"><span class="node">Statements / AST (SelectStatement · Expr · Function)</span></div>
         <div class="row"><span class="arrow">↓</span></div>
-        <div class="row"><span class="node">ElasticSearchQDLDialectResolver</span><span class="arrow">→</span><span class="node">SearchRequest</span><span class="arrow">→</span><span class="node">ElasticSearchSession</span><span class="arrow">→</span><span class="node">ESRvResolver</span></div>
-        <div class="row"><span class="node">MongoQDLDialectResolver</span><span class="arrow">→</span><span class="node">BSON filter</span><span class="arrow">→</span><span class="node">MongoSession</span><span class="arrow">→</span><span class="node">MongoRvResolver</span></div>
-        <div class="row"><span class="node">JDBC</span><span class="arrow">→</span><span class="node">PreparedStatement(?)</span><span class="arrow">→</span><span class="node">JdbcPreparedSession</span><span class="arrow">→</span><span class="node">JdbcRvResolver</span></div>
+        <div class="row"><span class="node">CapabilityValidator</span></div>
+        <div class="row"><span class="arrow">↓</span></div>
+        <div class="row"><span class="node">ElasticSearchQDLDialectResolver</span><span class="arrow">→</span><span class="node">composite / metrics agg</span><span class="arrow">→</span><span class="node">ElasticSearchRvResolver</span></div>
+        <div class="row"><span class="node">MongoQDLDialectResolver</span><span class="arrow">→</span><span class="node">$match / $group / $project</span><span class="arrow">→</span><span class="node">MongoRvResolver</span></div>
+        <div class="row"><span class="node">JDBC</span><span class="arrow">→</span><span class="node">PreparedStatement(?)</span><span class="arrow">→</span><span class="node">JdbcRvResolver</span></div>
         <div class="note">* JDBC 路径不解析 SQL，直接把参数化后的 SQL 交给 MySQL 执行。</div>
       </div>
     </section>
@@ -71,35 +76,101 @@ public interface CaveDemo {
     @Select(sql = "select field1, field2 from index1 where f1 = #{param1}", direct = "defaultEs")
     List&lt;Model&gt; queryList(@Param(name = "param1") String param1);
 }</pre>
-      <div class="callout">返回类型由方法签名决定：<code>List&lt;Model&gt;</code>、单实体、标量、单列列表或 <code>List&lt;Map&gt;</code>。实体映射支持 <code>@CField</code> 指定字段别名。</div>
+      <div class="callout">返回类型由方法签名决定：<code>List&lt;Model&gt;</code>、单实体、标量、<code>List&lt;String&gt;</code> / <code>List&lt;Integer&gt;</code> 或 <code>List&lt;Map&gt;</code>。实体映射支持无参构造器与 <code>@CField</code> 别名。</div>
     </section>
 
     <section class="block">
-      <h2>查询能力</h2>
-      <p class="lead">ES 与 MongoDB 共享同一套能力校验与 conformance 测试。</p>
+      <h2>数据源配置</h2>
+      <p class="lead">使用 Starter 时写在 application.yml；也可以继续使用 @CaveScan + JVM -D 参数或环境变量。</p>
+      <pre class="code"><span class="c"># application.yml</span>
+cave:
+  packages: [com.example.repository]
+  elasticsearch:
+    hosts: 127.0.0.1:9200          <span class="c"># 多个节点用逗号分隔</span>
+    username: elastic              <span class="c"># 可选</span>
+    password: ${ES_PASSWORD:}      <span class="c"># 可选</span>
+    default-size: 10000
+    group-size: 10000
+    enabled: true
+    priority: 0
+  mongodb:
+    host: mongodb://127.0.0.1:27017
+    dbname: demo
+    enabled: true
+    priority: 1
+  mysql:
+    host: 127.0.0.1:3306
+    db-name: demo
+    username: root
+    password: secret
+    <span class="c"># url: jdbc:mysql://127.0.0.1:3306/demo?useSSL=false</span>
+    <span class="c"># pool:</span>
+    <span class="c">#   maximum-pool-size: 10</span>
+    <span class="c">#   minimum-idle: 2</span>
+    enabled: true
+    priority: 2</pre>
+      <div class="callout">
+        ES 地址键为 <code>cave.elasticsearch.hosts</code>，支持 <code>127.0.0.1:9200</code>、
+        <code>http://es1:9200,http://es2:9200</code>、<code>https://es.example.com:9200</code>；
+        未写端口自动补 <code>9200</code>。配置优先级：<code>-D</code> &gt; 环境变量 &gt; Starter YAML。
+        数据源名称固定为 <code>defaultEs</code>、<code>mongodb</code>、<code>mysql</code>，可在
+        <code>@Select(direct = "mongodb")</code> 中引用。
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>查询能力矩阵</h2>
+      <p class="lead">ES 与 MongoDB 共享同一套能力校验与 conformance 测试；MySQL 走 JDBC 原生 SQL。</p>
       <table class="cap">
         <tr><th>能力</th><th>Elasticsearch</th><th>MongoDB</th></tr>
         <tr><td>SELECT 字段 / * / 别名</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         <tr><td>= != &gt; &lt; &gt;= &lt;= · LIKE / NOT LIKE</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>IN / BETWEEN / IS NULL</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>AND / OR / NOT · 括号分组</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>ORDER BY · LIMIT</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>IN / BETWEEN / IS NULL / NOT NULL</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>AND / OR / NOT · 括号分组 · LIKE ESCAPE</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>ORDER BY 字段/别名/序号 · LIMIT</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         <tr><td>count / avg / sum / min / max · count(distinct)</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-        <tr><td>GROUP BY / HAVING</td><td class="no">✗</td><td class="yes">✓</td></tr>
+        <tr><td>GROUP BY / HAVING</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>DISTINCT</td><td class="no">✗</td><td class="yes">✓</td></tr>
+        <tr><td>字段间比较（a &gt; b）</td><td class="no">✗</td><td class="yes">✓</td></tr>
         <tr><td>c_exists / c_keyvalue</td><td class="yes">✓</td><td class="yes">✓</td></tr>
         <tr><td>c_script（脚本查询）</td><td class="yes">✓</td><td class="no">✗</td></tr>
-        <tr><td>JOIN / 子查询 / DISTINCT / UNION / 窗口函数</td><td class="no">✗</td><td class="no">✗</td></tr>
+        <tr><td>JOIN / 子查询 / UNION / 窗口函数</td><td class="no">✗</td><td class="no">✗</td></tr>
       </table>
-      <div class="callout">未实现的能力（JOIN、子查询、DISTINCT、窗口函数等）会<strong>显式抛异常</strong>，而不是静默返回错误结果。MySQL 走 JDBC 原生 SQL，能力由 MySQL 决定。</div>
+      <p class="lead" style="margin-top:22px">MySQL / JDBC 能力</p>
+      <table class="cap">
+        <tr><th>能力</th><th>状态</th><th>说明</th></tr>
+        <tr><td>SELECT / JOIN / 子查询 / CTE / 窗口函数</td><td class="yes">✓</td><td>MySQL 原生语法直通</td></tr>
+        <tr><td>GROUP BY / HAVING / DISTINCT / UNION</td><td class="yes">✓</td><td>MySQL 原生语法直通</td></tr>
+        <tr><td>INSERT / UPDATE / DELETE</td><td class="yes">✓</td><td>参数绑定，返回影响行数</td></tr>
+        <tr><td>#{name} · ${list} · IN (${ids})</td><td class="yes">✓</td><td>PreparedStatement / 占位符展开</td></tr>
+        <tr><td>JDBC URL / SSL / 时区参数 / 连接池</td><td class="yes">✓</td><td>HikariCP</td></tr>
+        <tr><td>DDL / 存储过程 / Batch / 事务</td><td class="no">✗</td><td>暂未提供</td></tr>
+        <tr><td>动态表名 / 列名 ${table}</td><td class="no">✗</td><td>JDBC 下会成为绑定参数</td></tr>
+      </table>
+      <div class="callout">未实现的能力会<strong>显式抛异常</strong>，而不是静默返回错误结果。ES 分组使用 composite aggregation，默认最多 10000 个分组；MySQL 路径不解析 SQL，由 MySQL 决定语法覆盖。</div>
     </section>
 
     <section class="block">
       <h2>数据源语义差异</h2>
       <div class="feature-grid">
-        <div class="feature"><h3>Elasticsearch</h3><p>字符串等值 / IN / LIKE 默认走 field.keyword；未指定 LIMIT 默认 10000 条；暂不支持 scroll / search_after。</p></div>
-        <div class="feature"><h3>MongoDB</h3><p>单集合查询；LIKE 转为锚定正则（大小写不敏感）；支持聚合管道 $match→$group→$project→…。</p></div>
-        <div class="feature"><h3>MySQL / JDBC</h3><p>支持 SELECT / INSERT / UPDATE / DELETE，参数通过 ? 绑定到 PreparedStatement，不拼接字符串。</p></div>
+        <div class="feature"><h3>Elasticsearch</h3><p>字符串等值 / IN / LIKE 默认走 field.keyword；LIKE 区分大小写；无 LIMIT 默认 10000 条；GROUP BY 使用 composite aggregation，HAVING / 排序 / LIMIT 在中间件完成。</p></div>
+        <div class="feature"><h3>MongoDB</h3><p>单集合查询；LIKE 转为锚定正则（大小写不敏感）；支持 DISTINCT、字段间比较、GROUP BY / HAVING、count / avg / sum / min / max、c_exists / c_keyvalue；不支持 $lookup 和子查询。</p></div>
+        <div class="feature"><h3>MySQL / JDBC</h3><p>SELECT / JOIN / 子查询 / CTE / 窗口 / GROUP BY 等由 MySQL 原生执行；参数通过 ? 绑定，支持集合参数展开和连接池。</p></div>
       </div>
+    </section>
+
+    <section class="block">
+      <h2>参数与构建</h2>
+      <pre class="code">select * from t where f1 = #{p1}          <span class="c">-- 标量参数</span>
+select * from t where f1 in (${ids})      <span class="c">-- 集合参数，展开为 (?,?,...)</span></pre>
+      <div class="callout">
+        占位符必须匹配方法参数，否则抛 <code>SqlException</code>；推荐显式使用
+        <code>@Param(name = "...")</code>。JDBC 的 <code>${list}</code> 会按元素展开，
+        过大的列表建议分批查询；<code>${table}</code> 等动态标识符在 JDBC 下不可用。
+      </div>
+      <pre class="code">./mvnw -B test                       <span class="c"># 离线单元测试</span>
+./mvnw -B -Pintegration-tests test   <span class="c"># 集成测试（ES / MongoDB / Docker MySQL）</span>
+./mvnw -B -DskipTests package        <span class="c"># 编译打包</span></pre>
     </section>
 
     <section class="block">
@@ -109,6 +180,7 @@ public interface CaveDemo {
         <a class="btn primary" href="https://github.com/L-Angel/cave">GitHub</a>
         <a class="btn ghost" href="https://github.com/L-Angel/cave/blob/main/CONTRIBUTING.md">贡献指南</a>
         <a class="btn ghost" href="https://github.com/L-Angel/cave/blob/main/CHANGELOG.md">变更日志</a>
+        <a class="btn ghost" href="https://github.com/L-Angel/cave/blob/main/SECURITY.md">安全策略</a>
       </div>
     </section>
 
