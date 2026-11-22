@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cave · 统一 SQL 数据访问层</title>
+  <meta name="description" content="Cave 是统一的 SQL 数据访问层：用一套 SQL/CQL 语法查询 Elasticsearch、MongoDB 和 MySQL。">
+  <style>:root { --accent: #4338ca; --accent-soft: #eef0ff; }</style>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="promo-hero">
+    <p class="kicker">开源项目 · Java</p>
+    <h1>Cave</h1>
+    <p class="subtitle">统一的 SQL 数据访问层 —— 用一套 <strong>SQL / CQL</strong> 语法查询 <strong>Elasticsearch、MongoDB 和 MySQL</strong>。</p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/L-Angel/cave">GitHub 仓库</a>
+      <a class="btn ghost" href="https://search.maven.org/artifact/fun.l-angel/cave-sql">Maven Central</a>
+    </div>
+    <div class="badges" style="margin-top:22px">
+      <span class="badge"><b>Java</b> 8+</span>
+      <span class="badge"><b>License</b> Apache-2.0</span>
+      <span class="badge"><b>Build</b> Maven 3.6.3+</span>
+      <span class="badge"><b>Version</b> 0.1.0</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="block">
+      <h2>特性</h2>
+      <p class="lead">用接口签名的方式声明查询，返回类型决定结果映射。</p>
+      <div class="feature-grid">
+        <div class="feature"><h3>多异构数据源</h3><p>Elasticsearch、MongoDB、MySQL 三种存储，一套语法通吃。</p></div>
+        <div class="feature"><h3>统一 SQL 查询</h3><p>同一套 CQL 在不同存储介质之间迁移，切换后端不用重写业务。</p></div>
+        <div class="feature"><h3>显式失败</h3><p>未实现的语法抛 UnsupportedOperationException / SqlException，绝不静默忽略。</p></div>
+        <div class="feature"><h3>参数绑定</h3><p>#{} / ${} 参数在进入存储之前完成参数化与转义，防注入。</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>架构</h2>
+      <p class="lead">CQL 经 ANTLR 解析为 AST，再由三个方言解析器分别转换为各存储的查询。</p>
+      <div class="arch">
+        <div class="row"><span class="node hl">CQL / SQL 子集</span></div>
+        <div class="row"><span class="arrow">↓</span></div>
+        <div class="row"><span class="node">CqlLexer + CqlParser (ANTLR)</span></div>
+        <div class="row"><span class="arrow">↓</span></div>
+        <div class="row"><span class="node">Statements / AST (SelectStatement · Expr · Function)</span></div>
+        <div class="row"><span class="arrow">↓</span></div>
+        <div class="row"><span class="node">ElasticSearchQDLDialectResolver</span><span class="arrow">→</span><span class="node">SearchRequest</span><span class="arrow">→</span><span class="node">ElasticSearchSession</span><span class="arrow">→</span><span class="node">ESRvResolver</span></div>
+        <div class="row"><span class="node">MongoQDLDialectResolver</span><span class="arrow">→</span><span class="node">BSON filter</span><span class="arrow">→</span><span class="node">MongoSession</span><span class="arrow">→</span><span class="node">MongoRvResolver</span></div>
+        <div class="row"><span class="node">JDBC</span><span class="arrow">→</span><span class="node">PreparedStatement(?)</span><span class="arrow">→</span><span class="node">JdbcPreparedSession</span><span class="arrow">→</span><span class="node">JdbcRvResolver</span></div>
+        <div class="note">* JDBC 路径不解析 SQL，直接把参数化后的 SQL 交给 MySQL 执行。</div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>快速开始</h2>
+      <p class="lead">引入依赖，声明接口，即可像调用方法一样查询异构数据源。</p>
+      <pre class="code"><span class="c">&lt;!-- pom.xml --&gt;</span>
+<span class="k">&lt;dependency&gt;</span>
+    <span class="k">&lt;groupId&gt;</span>fun.l-angel<span class="k">&lt;/groupId&gt;</span>
+    <span class="k">&lt;artifactId&gt;</span>cave-sql<span class="k">&lt;/artifactId&gt;</span>
+    <span class="k">&lt;version&gt;</span>0.1.0<span class="k">&lt;/version&gt;</span>
+<span class="k">&lt;/dependency&gt;</span>
+
+<span class="c">// 声明查询接口</span>
+@Cave
+public interface CaveDemo {
+    @Select(sql = "select field1, field2 from index1 where f1 = #{param1}", direct = "defaultEs")
+    List&lt;Model&gt; queryList(@Param(name = "param1") String param1);
+}</pre>
+      <div class="callout">返回类型由方法签名决定：<code>List&lt;Model&gt;</code>、单实体、标量、单列列表或 <code>List&lt;Map&gt;</code>。实体映射支持 <code>@CField</code> 指定字段别名。</div>
+    </section>
+
+    <section class="block">
+      <h2>查询能力</h2>
+      <p class="lead">ES 与 MongoDB 共享同一套能力校验与 conformance 测试。</p>
+      <table class="cap">
+        <tr><th>能力</th><th>Elasticsearch</th><th>MongoDB</th></tr>
+        <tr><td>SELECT 字段 / * / 别名</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>= != &gt; &lt; &gt;= &lt;= · LIKE / NOT LIKE</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>IN / BETWEEN / IS NULL</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>AND / OR / NOT · 括号分组</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>ORDER BY · LIMIT</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>count / avg / sum / min / max · count(distinct)</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>GROUP BY / HAVING</td><td class="no">✗</td><td class="yes">✓</td></tr>
+        <tr><td>c_exists / c_keyvalue</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>c_script（脚本查询）</td><td class="yes">✓</td><td class="no">✗</td></tr>
+        <tr><td>JOIN / 子查询 / DISTINCT / UNION / 窗口函数</td><td class="no">✗</td><td class="no">✗</td></tr>
+      </table>
+      <div class="callout">未实现的能力（JOIN、子查询、DISTINCT、窗口函数等）会<strong>显式抛异常</strong>，而不是静默返回错误结果。MySQL 走 JDBC 原生 SQL，能力由 MySQL 决定。</div>
+    </section>
+
+    <section class="block">
+      <h2>数据源语义差异</h2>
+      <div class="feature-grid">
+        <div class="feature"><h3>Elasticsearch</h3><p>字符串等值 / IN / LIKE 默认走 field.keyword；未指定 LIMIT 默认 10000 条；暂不支持 scroll / search_after。</p></div>
+        <div class="feature"><h3>MongoDB</h3><p>单集合查询；LIKE 转为锚定正则（大小写不敏感）；支持聚合管道 $match→$group→$project→…。</p></div>
+        <div class="feature"><h3>MySQL / JDBC</h3><p>支持 SELECT / INSERT / UPDATE / DELETE，参数通过 ? 绑定到 PreparedStatement，不拼接字符串。</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>参与项目</h2>
+      <p class="lead">Apache-2.0 开源，欢迎贡献。</p>
+      <div class="actions" style="justify-content:flex-start">
+        <a class="btn primary" href="https://github.com/L-Angel/cave">GitHub</a>
+        <a class="btn ghost" href="https://github.com/L-Angel/cave/blob/main/CONTRIBUTING.md">贡献指南</a>
+        <a class="btn ghost" href="https://github.com/L-Angel/cave/blob/main/CHANGELOG.md">变更日志</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <a class="back" href="../">← 返回项目首页</a>
+    <p>© <span id="year"></span> Rick · Cave 采用 Apache-2.0 许可</p>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  </footer>
+</body>
+</html>

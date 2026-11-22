@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>e-note · 本地优先的跨端笔记</title>
+  <meta name="description" content="e-note 是本地优先、文件透明、多格式、可自托管同步的跨端笔记应用。">
+  <style>:root { --accent: #4A6CF7; --accent-soft: #eef1ff; }</style>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="promo-hero">
+    <p class="kicker">跨端笔记应用 · Flutter</p>
+    <h1>你的笔记，属于你自己</h1>
+    <p class="subtitle">e-note 是<strong>本地优先、文件透明、多格式、可自托管同步</strong>的跨端笔记应用。</p>
+    <div class="trust" style="margin-top:26px">
+      <span>本地优先</span>
+      <span>文件透明</span>
+      <span>自托管同步</span>
+      <span>端到端加密</span>
+    </div>
+    <div class="badges" style="margin-top:22px">
+      <span class="badge"><b>Flutter</b> / Dart</span>
+      <span class="badge"><b>State</b> Riverpod</span>
+      <span class="badge"><b>DB</b> drift</span>
+      <span class="badge"><b>Router</b> go_router</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="block">
+      <h2>核心功能</h2>
+      <p class="lead">不止是 Markdown 编辑器 —— 富文本、表格、附件、日历、演讲，一个应用全装下。</p>
+      <div class="feature-grid">
+        <div class="feature"><h3>笔记编辑</h3><p>Markdown / 纯文本 / 代码，原生编辑 + 即时预览，防抖自动保存。</p></div>
+        <div class="feature"><h3>富文本块编辑器</h3><p>自研 ENP 格式，块级编辑，支持表格、图片、附件引用。</p></div>
+        <div class="feature"><h3>内置表格 / Excel</h3><p>表格内核（含公式）+ Excel 编辑器 + 表格引用嵌入。</p></div>
+        <div class="feature"><h3>多格式附件</h3><p>Word、Excel、PDF、图片、Graffle 统一入库与预览。</p></div>
+        <div class="feature"><h3>自托管同步</h3><p>WebDAV / 群晖 / SMB / SFTP / S3，数据进你自己的 NAS。</p></div>
+        <div class="feature"><h3>加密</h3><p>本地静态加密（AES-256-GCM）+ 端到端加密。</p></div>
+        <div class="feature"><h3>历史版本</h3><p>自动快照，行级 diff，随时回溯与恢复。</p></div>
+        <div class="feature"><h3>日历</h3><p>内置日历（议程 / 日程），与系统日历双向同步。</p></div>
+        <div class="feature"><h3>演讲模式</h3><p>讲页模型 + 键位控制，笔记直接当幻灯片用。</p></div>
+        <div class="feature"><h3>AI 能力</h3><p>写作辅助、标题摘要、RAG 问答，融入笔记场景。</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>跨端支持</h2>
+      <p class="lead">一个应用，覆盖手机、平板、桌面与鸿蒙。</p>
+      <div class="platforms">
+        <span>iOS</span>
+        <span>Android</span>
+        <span>HarmonyOS（鸿蒙）</span>
+        <span>Web</span>
+        <span>Windows</span>
+        <span>macOS</span>
+        <span>Linux</span>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>常见问题</h2>
+      <div class="faq">
+        <details open><summary>数据存在哪里？</summary><p>你本地的普通文件 + 你指定的远端。文件即真相，随时用其它工具打开、备份、迁移。</p></details>
+        <details><summary>需要服务器吗？</summary><p>不需要。自建 NAS 或任意 WebDAV 即可，也可以完全离线本地使用。</p></details>
+        <details><summary>支持哪些平台？</summary><p>iOS / Android / HarmonyOS（鸿蒙）/ Web / Windows / macOS / Linux。</p></details>
+        <details><summary>换手机 / 重装 App 数据会丢吗？</summary><p>不会。卸载不删除本地笔记，重装后重新打开即可加载；换新设备时通过你自己的同步后端（WebDAV / 群晖等）全量恢复。</p></details>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="callout"><strong>源码暂未公开。</strong>e-note 目前为私有仓库，尚未开源；本页仅作项目介绍与推广。</div>
+    </section>
+
+  </main>
+
+  <footer>
+    <a class="back" href="../">← 返回项目首页</a>
+    <p>© <span id="year"></span> Rick · e-note</p>
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  </footer>
+</body>
+</html>

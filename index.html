@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rick · 开源项目门户</title>
-  <meta name="description" content="Rick（L-Angel）的开源项目门户。">
+  <title>Rick · 开源项目</title>
+  <meta name="description" content="Rick（L-Angel）的开源项目门户：Cave 与 e-note。">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,80 +17,32 @@
       <a class="btn" href="https://github.com/L-Angel">GitHub</a>
       <a class="btn ghost" href="https://blog.csdn.net/u013542440">CSDN 博客</a>
     </div>
-    <div class="stats">
-      <div class="stat"><strong>68</strong><span>公开仓库</span></div>
-    </div>
   </header>
 
   <main>
-    <section class="projects">
+    <section class="section">
       <div class="section-head">
-        <h2>精选项目</h2>
-        <p>一些我觉得值得分享的开源项目。</p>
+        <h2>项目</h2>
+        <p>我在维护的开源项目。</p>
       </div>
 
-      <div class="grid">
-        <a class="card" href="https://github.com/L-Angel/sdustoj">
-          <h3>sdustoj</h3>
-          <p class="desc">使用 Python Django + jQuery 编写的在线评测系统（OJ / Online Judge）</p>
-          <div class="meta"><span class="lang"><i style="background:#3572A5"></i>Python</span><span class="stars">★ 15</span></div>
+      <div class="projects-grid">
+        <a class="project" href="cave/">
+          <div class="mark" style="background:#4338ca">⌁</div>
+          <h3>Cave</h3>
+          <p class="tag">Java · SQL 数据访问层</p>
+          <p class="desc">统一的 SQL 数据访问层：用一套 SQL/CQL 语法查询 Elasticsearch、MongoDB 和 MySQL。</p>
+          <span class="go">查看项目 →</span>
         </a>
-        <a class="card" href="https://github.com/L-Angel/compress-demo">
-          <h3>compress-demo</h3>
-          <p class="desc">几种压缩格式的对比</p>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 7</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/spider_API">
-          <h3>spider_API</h3>
-          <p class="desc">聚合数据 API 爬虫</p>
-          <div class="meta"><span class="lang"><i style="background:#3572A5"></i>Python</span><span class="stars">★ 7</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/lavcache">
-          <h3>lavcache</h3>
-          <p class="desc">支持自定义存储媒介、初始化加载、过期重试、访问统计的缓存框架</p>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 4</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/tunnel">
-          <h3>tunnel</h3>
-          <p class="desc">分布式高可用 binlog 数据同步组件</p>
-          <div class="meta"><span class="lang"><i style="background:#00ADD8"></i>Go</span><span class="stars">★ 2</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/data-wharf">
-          <h3>data-wharf</h3>
-          <p class="desc">本地异步缓存队列（Local async Cache Queue）</p>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 2</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/cave">
-          <h3>cave</h3>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 2</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/scripts">
-          <h3>scripts</h3>
-          <p class="desc">常用脚本</p>
-          <div class="meta"><span class="lang"><i style="background:#89e051"></i>Shell</span><span class="stars">★ 2</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/snake">
-          <h3>snake</h3>
-          <p class="desc">基于 Netty 的 WebServer 框架</p>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 1</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/ChatRoom_Python">
-          <h3>ChatRoom_Python</h3>
-          <p class="desc">Python 聊天室</p>
-          <div class="meta"><span class="lang"><i style="background:#3572A5"></i>Python</span><span class="stars">★ 1</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/ClubManager_Java">
-          <h3>ClubManager_Java</h3>
-          <div class="meta"><span class="lang"><i style="background:#b07219"></i>Java</span><span class="stars">★ 1</span></div>
-        </a>
-        <a class="card" href="https://github.com/L-Angel/bloomfilter">
-          <h3>bloomfilter</h3>
-          <p class="desc">BloomFilter / CountBloomFilter</p>
-          <div class="meta"><span class="lang"><i style="background:#8b949e"></i>其他</span><span class="stars">★ 0</span></div>
+
+        <a class="project" href="enote/">
+          <div class="mark" style="background:#4A6CF7">✎</div>
+          <h3>e-note</h3>
+          <p class="tag">Flutter · 跨端笔记应用</p>
+          <p class="desc">本地优先、文件透明、多格式、可自托管同步的跨端笔记应用。</p>
+          <span class="go">查看项目 →</span>
         </a>
       </div>
-
-      <p class="more"><a href="https://github.com/L-Angel?tab=repositories">查看全部仓库 →</a></p>
     </section>
   </main>
 
